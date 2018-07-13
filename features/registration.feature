@@ -214,6 +214,7 @@ Feature:
         ]
     }
     """
+    And I clean the "api_sync" queue
 
     Given I am on "/parametres/mon-compte"
     Then the response status code should be 200
@@ -238,9 +239,18 @@ Feature:
     And I should not see an "Recevoir les e-mails de votre porteur de projet" element
     And I should not see an "Être notifié\(e\) de la création de nouveaux projets citoyens" element
 
-    When I press "Enregistrer les modifications"
+    When I check "Recevoir les informations sur le mouvement"
+    When I check "Recevoir la newsletter hebdomadaire LaREM"
+    And the "Recevoir les informations sur le mouvement" checkbox should be checked
+    And the "Recevoir la newsletter hebdomadaire LaREM" checkbox should be checked
+    And I press "Enregistrer les modifications"
     Then the response status code should be 200
     And I should see "Vos préférences d'e-mails ont bien été mises à jour."
+    Then "api_sync" should have 1 message
+    And "api_sync" should have message below:
+      | routing_key               | body                                                                                                                                  |
+      | user.update_subscriptions | {"uuid":"@string@","subscriptions":["subscribed_emails_movement_information","subscribed_emails_weekly_letter"],"unsubscriptions":[]} |
+
 
   @javascript
   Scenario: I can become adherent with a foreign country
